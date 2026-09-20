@@ -48,7 +48,7 @@ L.Icon.Default.mergeOptions({
 // BACKEND
 // =========================================================
 
-const API = "https://coating-investigator-martin-hazardous.trycloudflare.com";
+const API = "https://density-forming-editors-alpha.trycloudflare.com";
 
 
 function MapUpdater({ incidents }) {
