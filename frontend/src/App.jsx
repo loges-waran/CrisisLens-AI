@@ -48,7 +48,7 @@ L.Icon.Default.mergeOptions({
 // BACKEND
 // =========================================================
 
-const API = "https://density-forming-editors-alpha.trycloudflare.com";
+const API = "https://crisislens-ai-hjdl.onrender.com";
 
 
 function MapUpdater({ incidents }) {
