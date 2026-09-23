@@ -11,7 +11,7 @@ It analyzes disaster images, evaluates incident risk and severity, identifies lo
 ## 🌐 Live Demo
 
 **Frontend:**  
-https://crisis-lens-ai-beta.vercel.app
+https://crisis-lens-ai-three.vercel.app/
 
 **GitHub:**  
 https://github.com/loges-waran/CrisisLens-AI
