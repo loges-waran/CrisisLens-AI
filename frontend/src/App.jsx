@@ -409,9 +409,10 @@ function App() {
       );
 
 
-      setImageResult(
-        response.data
-      );
+      setImageResult(response.data || {
+        filename: selectedFile.name,
+        analysis: "No AI analysis returned from the server."
+      });
 
     }
 
@@ -592,8 +593,7 @@ function App() {
 
     if (
       !imageResult ||
-      !imageResult.analysis ||
-      imageResult.analysis.length === 0
+      !imageResult.analysis
     ) {
 
       alert(
@@ -633,29 +633,48 @@ function App() {
     }
 
 
-    // Get AI's highest prediction
+    // AI analysis can be either text (current Qwen response)
+    // or an array (older model response). Convert both safely to text.
 
-    const topPrediction =
-      imageResult.analysis[0];
+    const analysisText = Array.isArray(imageResult.analysis)
+      ? imageResult.analysis
+          .map((item) => {
+            if (typeof item === "string") return item;
+            if (item?.label) {
+              const score =
+                typeof item.score === "number"
+                  ? ` (${(item.score * 100).toFixed(1)}%)`
+                  : "";
+              return `${item.label}${score}`;
+            }
+            return JSON.stringify(item);
+          })
+          .join("\n")
+      : String(imageResult.analysis || "");
 
+    // Extract disaster type from the AI text.
 
-    // Convert model label into readable name
+    const disasterTypeMatch =
+      analysisText.match(
+        /Disaster Type\s*:\s*([^\n]+)/i
+      );
 
-    let disasterType =
-      topPrediction.label
-        .replaceAll("_", " ")
-        .replace(
-          /disaster/gi,
-          ""
-        )
-        .trim();
+    const disasterType =
+      disasterTypeMatch
+        ? disasterTypeMatch[1].trim()
+        : "Unknown Disaster";
 
+    // Extract severity if available.
 
-    // Confidence percentage
+    const severityMatch =
+      analysisText.match(
+        /Severity\s*:\s*([^\n]+)/i
+      );
 
-    const confidence = Math.round(
-      topPrediction.score * 100
-    );
+    const detectedSeverity =
+      severityMatch
+        ? severityMatch[1].trim()
+        : "Unknown";
 
 
     // People affected
@@ -664,10 +683,10 @@ function App() {
       Number(incidentPeople) || 0;
 
 
-    // Description generated from AI result
+    // Save the complete AI explanation as the description
 
     const description =
-      `AI image analysis detected ${disasterType} with ${confidence}% confidence.`;
+      `AI Analysis\\n\\n${analysisText}\\n\\nDetected Severity: ${detectedSeverity}`;
 
 
     try {
@@ -1172,46 +1191,31 @@ function App() {
             </p>
 
 
-            {/* PREDICTIONS */}
+            {/* AI ANALYSIS TEXT */}
 
-            {imageResult.analysis?.map(
-              (item, index) => (
-
-                <div
-
-                  className={
-                    index === 0
-                      ? "prediction top"
-                      : "prediction"
-                  }
-
-                  key={index}
-
-                >
-
-                  <span>
-
-                    {
-                      item.label
-                    }
-
-                  </span>
-
-
-                  <strong>
-
-                    {
-                      (
-                        item.score * 100
-                      ).toFixed(1)
-                    }%
-
-                  </strong>
-
-                </div>
-
-              )
-            )}
+            <div className="prediction top">
+              <span style={{ whiteSpace: "pre-line" }}>
+                {Array.isArray(imageResult.analysis)
+                  ? imageResult.analysis
+                      .map((item) => {
+                        if (typeof item === "string") return item;
+                        if (item?.label) {
+                          const score =
+                            typeof item.score === "number"
+                              ? ` (${(item.score * 100).toFixed(1)}%)`
+                              : "";
+                          return `${item.label}${score}`;
+                        }
+                        return JSON.stringify(item);
+                      })
+                      .join("\n")
+                  : typeof imageResult.analysis === "string"
+                    ? imageResult.analysis
+                    : imageResult.analysis
+                      ? JSON.stringify(imageResult.analysis, null, 2)
+                      : "No AI analysis available."}
+              </span>
+            </div>
 
 
 
