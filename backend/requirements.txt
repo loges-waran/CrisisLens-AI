@@ -2,6 +2,6 @@ fastapi
 uvicorn[standard]
 sqlalchemy
 python-multipart
-transformers
-torch
 pillow
+openai
+requests

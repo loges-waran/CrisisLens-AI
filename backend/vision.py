@@ -1,16 +1,49 @@
-from transformers import pipeline
+import os
+import base64
+from openai import OpenAI
 
-print("Loading CrisisLens disaster AI...")
 
-classifier = pipeline(
-    "image-classification",
-    model="Luwayy/disaster_images_model"
+client = OpenAI(
+    base_url="https://router.huggingface.co/v1",
+    api_key=os.environ["HF_TOKEN"]
 )
-
-print("CrisisLens disaster AI loaded!")
 
 
 def analyze_image(image_path):
-    results = classifier(image_path)
 
-    return results[:5]
+    with open(image_path, "rb") as image_file:
+        image_base64 = base64.b64encode(
+            image_file.read()
+        ).decode("utf-8")
+
+    response = client.chat.completions.create(
+        model="Qwen/Qwen3-VL-30B-A3B-Instruct:novita",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "text",
+                        "text": (
+                            "Analyze this image for disaster response. "
+                            "Identify the likely disaster type, "
+                            "visible damage, "
+                            "severity (Low/Medium/High), "
+                            "and give a short reason."
+                        )
+                    },
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": (
+                                "data:image/jpeg;base64,"
+                                + image_base64
+                            )
+                        }
+                    }
+                ]
+            }
+        ]
+    )
+
+    return response.choices[0].message.content
